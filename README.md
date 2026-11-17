@@ -7,7 +7,15 @@ App de macOS y Windows que lee tu uso de Claude, lo **proyecta hasta el reinicio
 > [!WARNING]
 > **No oficial.** Sin relación con Anthropic ni respaldo suyo. Lee un **endpoint interno y no documentado de claude.ai** usando tu propia sesión, iniciada en una ventana de la app. Puede cambiar o desaparecer sin aviso, y es tu responsabilidad comprobar que ese uso sea aceptable según los términos de tu cuenta. «Claude» es una marca de Anthropic; si publicas un fork, considera cambiar el nombre.
 
-English summary: **AI Usage Monitor** is a macOS (Dock) and Windows (system tray) app that tracks your AI usage (Claude / Claude Code rate limits) and projects it until the 5-hour window resets (probability of hitting the limit, median time, 80 % range) and shows it in the Dock icon. Unofficial; it reads an undocumented claude.ai endpoint with your own session. UI is Spanish-only for now; see [CONTRIBUTING](CONTRIBUTING.md).
+## In English
+
+**AI Usage Monitor** is a macOS (Dock) and Windows (system tray) app that answers one question: *will I hit my Claude usage limit before the 5-hour window resets?* It reads your Claude usage, projects it to the reset and shows the verdict right in the Dock or tray icon: a usage ring, an elapsed-time ring and, only when it matters, a number (probability of running out, or minutes of margin). A click opens a panel with charts.
+
+- **Claude Code rate limits, no login:** it can read the `rate_limits` that Claude Code already passes to its status line (Pro and Max plans), so no cookies or tokens are involved. Alternatively it uses your own claude.ai session, or an optional self-hosted server (Docker).
+- **Projection, not just a gauge:** probability of hitting the limit, median time to exhaustion and an 80 % range, plus the weekly limits.
+- **Install in one line** (macOS Apple Silicon / Windows x64): see [Instalación rápida](#instalación-rápida-macos-apple-silicon).
+
+> Unofficial: not affiliated with or endorsed by Anthropic. The claude.ai source uses an undocumented endpoint that may change or disappear. The UI is Spanish-only for now; see [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Instalación rápida (macOS, Apple Silicon)
 
