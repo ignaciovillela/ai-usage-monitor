@@ -1,4 +1,4 @@
-# Usage Monitor · servidor
+# AI Usage Monitor · servidor
 
 Servicio pequeño (Node 20, sin dependencias) que consulta el uso de tu cuenta de Claude cada minuto y lo
 sirve por HTTP. La app lo muestra con la fuente **Servidor propio (URL)**; otras herramientas (Home Assistant,
@@ -26,20 +26,21 @@ la app de escritorio.
 
 ## Puesta en marcha (Docker Compose)
 
-La imagen está en `ghcr.io/ignaciovillela/usage-monitor-server` (amd64 y arm64): `latest` y `X.Y.Z` con cada release,
+La imagen está en `ghcr.io/ignaciovillela/ai-usage-monitor-server` (amd64 y arm64): `latest` y `X.Y.Z` con cada release,
 `dev` (siempre la última de la rama dev) y `X.Y.Z-dev.N` (una compilación de dev concreta) con cada cambio en dev. Para probar
 dev cambia `:latest` por `:dev` en el compose; la app de dev muestra la misma versión `X.Y.Z-dev.N` y avisa si hay una más nueva.
+La imagen se llamaba `usage-monitor-server`; se sigue publicando con ese nombre (mismas etiquetas) para no dejar sin actualizaciones a quien ya la usa, pero conviene pasar al nombre nuevo.
 Solo necesitas este archivo, [`docker-compose.yml`](docker-compose.yml) (sirve igual como stack en Dockge o Portainer).
 Viene preparado para la opción A; pega el `API_TOKEN` y ejecuta `docker compose up -d`:
 
 ```yaml
-# Usage Monitor · servidor (opcional). Copia este archivo tal cual (también sirve como stack en Dockge o Portainer),
+# AI Usage Monitor · servidor (opcional). Copia este archivo tal cual (también sirve como stack en Dockge o Portainer),
 # elige cómo accede a tu cuenta (A o B), pega el API_TOKEN y ejecuta: docker compose up -d
 services:
-  usage-monitor:
-    image: ghcr.io/ignaciovillela/usage-monitor-server:latest   # :dev para probar la rama dev
+  ai-usage-monitor:
+    image: ghcr.io/ignaciovillela/ai-usage-monitor-server:latest   # :dev para probar la rama dev
     # build: .                                                   # o compílala desde el repo (dentro de server/)
-    container_name: usage-monitor
+    container_name: ai-usage-monitor
     restart: unless-stopped
     ports:
       - "8787:8787"

@@ -1,10 +1,10 @@
-# PRD — Usage Monitor (app de escritorio)
+# PRD — AI Usage Monitor (app de escritorio)
 
 Versión 3.0 · Proyecto de código abierto, **no oficial y sin relación con Anthropic**.
 
 ## 1. Resumen
 
-Usage Monitor responde, sin abrir nada, una pregunta: **¿me voy a quedar sin límite de uso de Claude antes de que se reinicie la ventana de 5 horas?** Es una app de escritorio (macOS y Windows) que muestra la respuesta en el ícono del Dock (macOS) o de la bandeja del sistema (Windows) y ofrece un panel con gráficos para el detalle.
+AI Usage Monitor responde, sin abrir nada, una pregunta: **¿me voy a quedar sin límite de uso de Claude antes de que se reinicie la ventana de 5 horas?** Es una app de escritorio (macOS y Windows) que muestra la respuesta en el ícono del Dock (macOS) o de la bandeja del sistema (Windows) y ofrece un panel con gráficos para el detalle.
 
 ## 2. Problema
 
@@ -32,7 +32,7 @@ Personas que usan Claude Code de forma intensiva en macOS y quieren administrar 
 
 ### 5.1 Conexión con la cuenta
 - La app abre una ventana de **claude.ai** en la que inicias sesión una vez; la sesión persiste entre ejecuciones. La lectura del uso se hace **desde esa misma página** (mismo origen y cookies), así que la app no maneja contraseñas ni cookies a mano.
-- **Fuente alternativa «Claude Code»**: lee `rate_limits` de la línea de estado de Claude Code (script local `~/.usage-monitor/statusline-feed.sh` → `claude-code.json`), sin sesión ni cookies; solo Pro/Max y solo mientras se usa Claude Code. Es la fuente por defecto; el panel ofrece conectarla con un botón (respaldo de `settings.json`, confirmación, reversible) y la app se actualiza sola al llegar datos. La ventana de claude.ai queda como alternativa.
+- **Fuente alternativa «Claude Code»**: lee `rate_limits` de la línea de estado de Claude Code (script local `~/.ai-usage-monitor/statusline-feed.sh` → `claude-code.json`), sin sesión ni cookies; solo Pro/Max y solo mientras se usa Claude Code. Es la fuente por defecto; el panel ofrece conectarla con un botón (respaldo de `settings.json`, confirmación, reversible) y la app se actualiza sola al llegar datos. La ventana de claude.ai queda como alternativa.
 - La ventana se muestra sola cuando no hay sesión, cuando claude.ai no carga en 30 s o tras dos fallos seguidos, y se oculta sola cuando vuelven los datos. Siempre disponible desde el menú del Dock.
 - Consulta cada 20 s (configurable: 10, 20, 30 o 60 s); con errores espacia las consultas hasta 5 min.
 - Sin lecturas durante 5 min, el ícono se pone gris y avisa, en vez de mostrar un dato viejo.
@@ -65,7 +65,7 @@ Personas que usan Claude Code de forma intensiva en macOS y quieren administrar 
 | Registro de pronósticos | 90 días |
 | Historial semanal | 400 días |
 
-Todo en `~/Library/Application Support/Usage Monitor`. No hay servidor propio ni telemetría; no se guardan conversaciones.
+Todo en `~/Library/Application Support/AI Usage Monitor`. No hay servidor propio ni telemetría; no se guardan conversaciones.
 
 ## 6. Resultados medidos
 

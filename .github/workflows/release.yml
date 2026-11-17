@@ -110,35 +110,35 @@ jobs:
           endpoint: ${{ vars.AZURE_SIGNING_ENDPOINT }}
           signing-account-name: ${{ vars.AZURE_SIGNING_ACCOUNT }}
           certificate-profile-name: ${{ vars.AZURE_SIGNING_PROFILE }}
-          files-folder: ${{ github.workspace }}\dist\Usage Monitor-win32-x64
+          files-folder: ${{ github.workspace }}\dist\AI Usage Monitor-win32-x64
           files-folder-filter: exe,dll,node
           files-folder-recurse: true
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
-          description: Usage Monitor
+          description: AI Usage Monitor
           description-url: https://github.com/${{ github.repository }}
       - name: Verificar firmas (Windows)
         if: steps.signing.outputs.enabled == 'true'
         shell: pwsh
         run: |
-          $bad = Get-ChildItem "dist/Usage Monitor-win32-x64" -Recurse -Include *.exe,*.dll,*.node |
+          $bad = Get-ChildItem "dist/AI Usage Monitor-win32-x64" -Recurse -Include *.exe,*.dll,*.node |
             Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid' }
           if ($bad) { $bad.FullName | ForEach-Object { "Sin firma válida: $_" }; exit 1 }
           "Todos los binarios están firmados."
 
       - name: Instalador .dmg (macOS)
         if: runner.os == 'macOS'
-        run: bash scripts/make-dmg.sh "dist/Usage Monitor-darwin-arm64/Usage Monitor.app" "dist/Usage-Monitor-${TAG}-macos-arm64.dmg"
+        run: bash scripts/make-dmg.sh "dist/AI Usage Monitor-darwin-arm64/AI Usage Monitor.app" "dist/AI-Usage-Monitor-${TAG}-macos-arm64.dmg"
       - name: Zip (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path "dist/Usage Monitor-win32-x64" -DestinationPath "dist/Usage-Monitor-$env:TAG-windows-x64.zip"
+        run: Compress-Archive -Path "dist/AI Usage Monitor-win32-x64" -DestinationPath "dist/AI-Usage-Monitor-$env:TAG-windows-x64.zip"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: usage-monitor-${{ matrix.name }}
-          path: dist/Usage-Monitor-*
+          name: ai-usage-monitor-${{ matrix.name }}
+          path: dist/AI-Usage-Monitor-*
           if-no-files-found: error
 
       - name: Adjuntar al release
@@ -146,7 +146,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$TAG" dist/Usage-Monitor-* --clobber --repo "$GITHUB_REPOSITORY"
+        run: gh release upload "$TAG" dist/AI-Usage-Monitor-* --clobber --repo "$GITHUB_REPOSITORY"
 
   # Push a dev: pre-release propio con los instaladores de este commit; se conservan los últimos 10 de dev.
   dev-release:
@@ -170,7 +170,7 @@ jobs:
           notes="Compilación automática de la rama dev (${SHA:0:7}). No es estable: úsala para probar.
 
           Servidor: \`$image\` (o \`:dev\` para seguir siempre la última de dev)."
-          gh release create "$TAG" dist/Usage-Monitor-* --repo "$REPO" --target "$SHA" --prerelease --title "$TAG (dev)" --notes "$notes"
+          gh release create "$TAG" dist/AI-Usage-Monitor-* --repo "$REPO" --target "$SHA" --prerelease --title "$TAG (dev)" --notes "$notes"
       - name: Limpiar pre-releases de dev antiguos (se conservan 10)
         env:
           GH_TOKEN: ${{ github.token }}

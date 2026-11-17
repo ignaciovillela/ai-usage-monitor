@@ -11,7 +11,7 @@ No se firma en los PR. Si faltan las variables de abajo, el build sigue y sale *
    - Completa la **validación de identidad** (*Public Trust*, individual u organización) y crea un **perfil de certificado** *Public Trust*.
 2. **App de Entra ID con credencial federada (OIDC, sin secretos):**
    - En *Microsoft Entra ID → Registros de aplicaciones*, crea una app.
-   - En *Certificados y secretos → Credenciales federadas*, añade una de GitHub Actions con organización `ignaciovillela`, repositorio `usage-monitor`, tipo de entidad **Environment** y nombre `signing`.
+   - En *Certificados y secretos → Credenciales federadas*, añade una de GitHub Actions con organización `ignaciovillela`, repositorio `ai-usage-monitor`, tipo de entidad **Environment** y nombre `signing`.
    - En la cuenta de Artifact Signing (*Control de acceso (IAM)*), dale a esa app el rol **Artifact Signing Certificate Profile Signer**.
 3. **En GitHub** (*Settings* del repo):
    - En *Environments*, crea el entorno `signing`.

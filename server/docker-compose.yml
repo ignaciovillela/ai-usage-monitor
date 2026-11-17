@@ -1,10 +1,10 @@
-# Usage Monitor · servidor (opcional). Copia este archivo tal cual (también sirve como stack en Dockge o Portainer),
+# AI Usage Monitor · servidor (opcional). Copia este archivo tal cual (también sirve como stack en Dockge o Portainer),
 # elige cómo accede a tu cuenta (A o B), pega el API_TOKEN y ejecuta: docker compose up -d
 services:
-  usage-monitor:
-    image: ghcr.io/ignaciovillela/usage-monitor-server:latest   # :dev para probar la rama dev
+  ai-usage-monitor:
+    image: ghcr.io/ignaciovillela/ai-usage-monitor-server:latest   # :dev para probar la rama dev
     # build: .                                                   # o compílala desde el repo (dentro de server/)
-    container_name: usage-monitor
+    container_name: ai-usage-monitor
     restart: unless-stopped
     ports:
       - "8787:8787"

@@ -820,7 +820,7 @@ $("remote-token").addEventListener("keydown", e => { if (e.key === "Enter") save
 function renderVersions(data) {
   ui.source = data.dataSource === "claude-code" ? "Claude Code" : data.dataSource === "remote" ? `tu servidor${data.remoteVia ? ` (${data.remoteVia})` : ""}` : "Claude.ai";
   const parts = [];
-  if (data.appVersion) parts.push(`Usage Monitor v${data.appVersion}`);
+  if (data.appVersion) parts.push(`AI Usage Monitor v${data.appVersion}`);
   if (data.dataSource === "remote" && data.serverVersion) parts.push(`servidor v${data.serverVersion}${data.remoteVia ? ` (${data.remoteVia === "online" ? "online" : "local"})` : ""}`);
   else if (data.dataSource === "remote" && data.remoteVia) parts.push(`servidor sin versión (${data.remoteVia})`);
   $("app-version").textContent = parts.join(" · ");
@@ -997,7 +997,7 @@ function saveCsv(lines, name) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 $("export").addEventListener("click", () => saveCsv(["timestamp,uso_pct,reinicio"].concat(model.samples.map(s =>
-  `${new Date(s.ts).toISOString()},${s.value},${s.resetsAt ? new Date(s.resetsAt).toISOString() : ""}`)), "usage-monitor"));
+  `${new Date(s.ts).toISOString()},${s.value},${s.resetsAt ? new Date(s.resetsAt).toISOString() : ""}`)), "ai-usage-monitor"));
 // Historial semanal [cupo, reinicio, pico, [[ts, uso], …]] en el formato que lee «Importar CSV» (src/importer.js).
 $("export-weekly").addEventListener("click", () => {
   const lines = ["cupo,reinicio,timestamp,uso_pct"];
@@ -1005,7 +1005,7 @@ $("export-weekly").addEventListener("click", () => {
     for (const [ts, v] of points || []) lines.push(`${key},${new Date(resetsAt).toISOString()},${new Date(ts).toISOString()},${v}`);
   }
   if (lines.length === 1) { $("import-status").textContent = "Aún no hay historial semanal para exportar."; return; }
-  saveCsv(lines, "usage-monitor-semanal");
+  saveCsv(lines, "ai-usage-monitor-semanal");
 });
 $("connect-btn").addEventListener("click", () => chrome.runtime.sendMessage({ type: "CONNECT_CLAUDE_CODE" }, () => { void chrome.runtime.lastError; load(); }));
 $("use-web").addEventListener("click", () => chrome.runtime.sendMessage({ type: "SET_SOURCE", value: "web" }, () => { void chrome.runtime.lastError; load(); }));

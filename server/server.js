@@ -1,4 +1,4 @@
-// Usage Monitor · servicio opcional. Consulta el uso de tu cuenta de Claude cada cierto tiempo y lo sirve por HTTP
+// AI Usage Monitor · servicio opcional. Consulta el uso de tu cuenta de Claude cada cierto tiempo y lo sirve por HTTP
 // para que la app (fuente «Servidor propio») u otras herramientas solo lo lean. Dos formas de acceder a la cuenta:
 //   · CLAUDE_CREDENTIALS_FILE: el login de Claude Code de esta máquina (~/.claude/.credentials.json). Si el acceso
 //     vence, lo renueva y lo guarda en el mismo archivo, como otra terminal de Claude Code (CLAUDE_CREDENTIALS_RENEW=false
@@ -80,7 +80,7 @@ const OAUTH_BETA = "oauth-2025-04-20";
 const LOGIN_AGAIN = "inicia sesión de nuevo en Claude Code en esa máquina (claude → /login)";
 function claudeCodeSource(config, log = console) {
   const file = config.credentialsFile;
-  const ua = `usage-monitor-server/${VERSION}`;
+  const ua = `ai-usage-monitor-server/${VERSION}`;
   function read() {
     let data;
     try { data = JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) {
@@ -102,7 +102,7 @@ function claudeCodeSource(config, log = console) {
     let data;
     try { data = JSON.parse(fs.readFileSync(file, "utf8")); } catch (_) { data = {}; }      // releer: no pisar otros campos
     const text = JSON.stringify({ ...data, claudeAiOauth: oauth });
-    const tmp = path.join(path.dirname(file), `.credentials.json.usage-monitor-${process.pid}.tmp`);
+    const tmp = path.join(path.dirname(file), `.credentials.json.ai-usage-monitor-${process.pid}.tmp`);
     try {
       fs.writeFileSync(tmp, text, { mode: 0o600 });
       fs.renameSync(tmp, file);
@@ -268,7 +268,7 @@ if (require.main === module) {
   const monitor = createMonitor(config);
   const server = createServer(monitor, config);
   const via = config.credentialsFile ? `login de Claude Code (${config.credentialsFile}${config.renewCredentials ? "" : ", solo lectura"})` : "cookie de claude.ai";
-  server.listen(config.port, config.host, () => console.log(`Usage Monitor servidor v${VERSION} en http://${config.host}:${config.port}/usage (cada ${config.pollSeconds} s, vía ${via})`));
+  server.listen(config.port, config.host, () => console.log(`AI Usage Monitor servidor v${VERSION} en http://${config.host}:${config.port}/usage (cada ${config.pollSeconds} s, vía ${via})`));
   monitor.start();
   const shutdown = () => { monitor.stop(); server.close(() => process.exit(0)); };
   process.on("SIGTERM", shutdown); process.on("SIGINT", shutdown);

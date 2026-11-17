@@ -1,6 +1,6 @@
 > **Nota histórica.** Estas notas se escribieron cuando el proyecto era una extensión de Chrome más una app de macOS. La extensión salió del alcance; el modelo y el panel viven ahora en `renderer/panel/` y la app los usa directamente. Las secciones sobre `background.js`, el badge, el service worker y el puente local ya no se aplican.
 
-# Claude Usage Monitor — notas para retomar el proyecto
+# AI Usage Monitor — notas para retomar el proyecto
 
 Extensión de Chrome (Manifest V3) que muestra el uso de Claude (ventana de 5 h y semanal) y **proyecta si te vas a quedar sin límite antes del reinicio**, con el veredicto en el ícono de la barra. Versión actual: **3.0.0**. Todo local: no hay backend ni red salvo `claude.ai`.
 

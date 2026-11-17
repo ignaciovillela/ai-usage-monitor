@@ -1,4 +1,4 @@
-# Usage Monitor
+# AI Usage Monitor
 
 > ¿Voy a llegar al límite de uso de Claude antes del reinicio de la ventana? Míralo en el ícono del Dock, sin abrir nada.
 
@@ -7,12 +7,12 @@ App de macOS y Windows que lee tu uso de Claude, lo **proyecta hasta el reinicio
 > [!WARNING]
 > **No oficial.** Sin relación con Anthropic ni respaldo suyo. Lee un **endpoint interno y no documentado de claude.ai** usando tu propia sesión, iniciada en una ventana de la app. Puede cambiar o desaparecer sin aviso, y es tu responsabilidad comprobar que ese uso sea aceptable según los términos de tu cuenta. «Claude» es una marca de Anthropic; si publicas un fork, considera cambiar el nombre.
 
-English summary: a macOS (Dock) and Windows (system tray) app that projects your Claude usage until the 5-hour window resets (probability of hitting the limit, median time, 80 % range) and shows it in the Dock icon. Unofficial; it reads an undocumented claude.ai endpoint with your own session. UI is Spanish-only for now; see [CONTRIBUTING](CONTRIBUTING.md).
+English summary: **AI Usage Monitor** is a macOS (Dock) and Windows (system tray) app that tracks your AI usage (Claude / Claude Code rate limits) and projects it until the 5-hour window resets (probability of hitting the limit, median time, 80 % range) and shows it in the Dock icon. Unofficial; it reads an undocumented claude.ai endpoint with your own session. UI is Spanish-only for now; see [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Instalación rápida (macOS, Apple Silicon)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-mac.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-mac.sh | bash
 ```
 
 Instala la última versión en *Aplicaciones* sin avisos de macOS. Al abrirla, el panel te ofrece conectarla con Claude Code.
@@ -22,12 +22,14 @@ Instala la última versión en *Aplicaciones* sin avisos de macOS. Al abrirla, e
 En PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-win.ps1 | iex
+irm https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-win.ps1 | iex
 ```
 
 Instala la última versión sin avisos de SmartScreen y la abre. Para que además se actualice sola, ver [Instalar](#instalar). Más opciones (`.dmg`, zip, código fuente) también ahí.
 
 ¿Prefieres que un servidor tuyo consulte el uso y la app solo lo muestre? Copia [`server/docker-compose.yml`](server/docker-compose.yml) (Docker, opcional) y mira [Servidor propio](#fuente-de-datos-servidor-propio-opcional).
+
+> **Antes se llamaba «Usage Monitor».** Si ya la tenías, el instalador de una línea la reemplaza, la app trae tu historial y ajustes, y reapunta la conexión con Claude Code. Hay que volver a iniciar sesión en claude.ai (si usas esa fuente) y a poner el token del servidor propio. Una versión anterior a este cambio no puede actualizarse sola a esta: instala una vez con la línea de arriba.
 
 ## Qué hace
 
@@ -41,36 +43,36 @@ Backtest con usuarios sintéticos (56 días) contra una extrapolación lineal: B
 
 ## Instalar
 
-**Desde un release** (lo más fácil): descarga el zip de tu sistema en [Releases](https://github.com/ignaciovillela/usage-monitor/releases).
+**Desde un release** (lo más fácil): descarga el zip de tu sistema en [Releases](https://github.com/ignaciovillela/ai-usage-monitor/releases).
 - **macOS (Apple Silicon) — instalación sin bloqueos, una línea en Terminal:**
   ```sh
-  curl -fsSL https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-mac.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-mac.sh | bash
   ```
   Descarga el último `.dmg` con `curl`, copia la app a *Aplicaciones* y la abre. macOS solo bloquea lo que descargan los navegadores (los marca como «descargado de internet»), no lo que baja `curl`, así que no aparece ningún aviso; el script no toca ningún atributo de seguridad ni usa `sudo` (léelo antes: [scripts/install-mac.sh](scripts/install-mac.sh)).
-- **macOS, con el `.dmg` descargado del navegador:** arrastra *Usage Monitor* a *Applications*. La app no está firmada con un certificado de pago de Apple ni notarizada, así que macOS la bloqueará la primera vez. Para permitirla: *Ajustes del Sistema → Privacidad y seguridad → «Abrir de todos modos»* (aparece tras intentar abrirla una vez), o en Terminal `xattr -dr com.apple.quarantine "/Applications/Usage Monitor.app"`. (En macOS anteriores basta con clic derecho → *Abrir*.)
+- **macOS, con el `.dmg` descargado del navegador:** arrastra *AI Usage Monitor* a *Applications*. La app no está firmada con un certificado de pago de Apple ni notarizada, así que macOS la bloqueará la primera vez. Para permitirla: *Ajustes del Sistema → Privacidad y seguridad → «Abrir de todos modos»* (aparece tras intentar abrirla una vez), o en Terminal `xattr -dr com.apple.quarantine "/Applications/AI Usage Monitor.app"`. (En macOS anteriores basta con clic derecho → *Abrir*.)
 - **Windows (x64) — experimental — instalación sin avisos, una línea en PowerShell:**
   ```powershell
-  irm https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-win.ps1 | iex
+  irm https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-win.ps1 | iex
   ```
-  Descarga el último zip de Windows, lo instala en `%LOCALAPPDATA%\Programs\Usage Monitor`, crea un acceso directo en el menú Inicio y abre la app. Si vuelves a ejecutarlo, actualiza (o no hace nada si ya tienes la última versión). Lo que baja PowerShell no lleva la marca «descargado de internet», así que SmartScreen no avisa; no usa permisos de administrador ni toca tus datos (léelo antes: [scripts/install-win.ps1](scripts/install-win.ps1)).
+  Descarga el último zip de Windows, lo instala en `%LOCALAPPDATA%\Programs\AI Usage Monitor`, crea un acceso directo en el menú Inicio y abre la app. Si vuelves a ejecutarlo, actualiza (o no hace nada si ya tienes la última versión). Lo que baja PowerShell no lleva la marca «descargado de internet», así que SmartScreen no avisa; no usa permisos de administrador ni toca tus datos (léelo antes: [scripts/install-win.ps1](scripts/install-win.ps1)).
 
   **Actualización automática (opcional):** crea una tarea programada que repite la instalación al iniciar sesión y cada día; si hay versión nueva, cierra la app, la reemplaza y la vuelve a abrir.
   ```powershell
-  & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-win.ps1))) -AutoUpdate
+  & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-win.ps1))) -AutoUpdate
   ```
-  Con el mismo comando, cambiando `-AutoUpdate` por `-DisableAutoUpdate` la quitas, y con `-Uninstall` borras la app, el acceso directo y la tarea (tus datos quedan en `%APPDATA%\Usage Monitor`).
+  Con el mismo comando, cambiando `-AutoUpdate` por `-DisableAutoUpdate` la quitas, y con `-Uninstall` borras la app, el acceso directo y la tarea (tus datos quedan en `%APPDATA%\AI Usage Monitor`).
 
   **Canal (main o dev):** en una instalación nueva se instala la última estable (main); añade `-Channel dev` para la última de desarrollo. Después se cambia desde la app (*Ajustes → Avisos y actualizaciones → Canal*; el engranaje del panel o *Ajustes…* en el menú de la bandeja), y el botón *Actualizar ahora* y la tarea automática siguen ese canal. Pasar de dev a main instala la estable aunque tenga un número menor.
-- **Windows, con el zip descargado del navegador:** descomprime y ejecuta `Usage Monitor.exe`. Los releases van firmados con Azure Artifact Signing, así que Smart App Control no los bloquea (SmartScreen puede avisar mientras el certificado gana reputación: *Más información → Ejecutar de todos modos*). Si compilas tú la app, sale sin firmar y Smart App Control la bloqueará; ver [docs/windows-signing.md](docs/windows-signing.md). El ícono dinámico vive en la bandeja del sistema (junto al reloj; puede quedar en el menú «^» de íconos ocultos): clic para abrir el panel, clic derecho para el menú.
+- **Windows, con el zip descargado del navegador:** descomprime y ejecuta `AI Usage Monitor.exe`. Los releases van firmados con Azure Artifact Signing, así que Smart App Control no los bloquea (SmartScreen puede avisar mientras el certificado gana reputación: *Más información → Ejecutar de todos modos*). Si compilas tú la app, sale sin firmar y Smart App Control la bloqueará; ver [docs/windows-signing.md](docs/windows-signing.md). El ícono dinámico vive en la bandeja del sistema (junto al reloj; puede quedar en el menú «^» de íconos ocultos): clic para abrir el panel, clic derecho para el menú.
 
 **Desde el código fuente** (necesitas Node 20+; en Mac Intel es la única opción):
 
 ```sh
 npm install
-npm run build        # macOS: crea dist/Usage Monitor-darwin-<arq>/Usage Monitor.app
-npm run build:win    # Windows (ejecutar en Windows): crea dist/Usage Monitor-win32-x64/
+npm run build        # macOS: crea dist/AI Usage Monitor-darwin-<arq>/AI Usage Monitor.app
+npm run build:win    # Windows (ejecutar en Windows): crea dist/AI Usage Monitor-win32-x64/
 npm run dmg          # macOS: crea el instalador .dmg a partir de la app compilada
-open "dist/Usage Monitor-darwin-"*/"Usage Monitor.app"   # macOS
+open "dist/AI Usage Monitor-darwin-"*/"AI Usage Monitor.app"   # macOS
 ```
 
 En macOS la app está firmada ad hoc, sin notarizar: la primera vez, clic derecho → *Abrir* (o permítela en Ajustes del sistema → Privacidad y seguridad). Ofrece moverse a `/Applications` y abrirse al iniciar sesión. Los instaladores de los releases (`.dmg` y `.zip` de Windows) los compila el workflow `release` de GitHub Actions.
@@ -79,7 +81,7 @@ En macOS la app está firmada ad hoc, sin notarizar: la primera vez, clic derech
 
 Si usas Claude Code con un plan **Pro o Max**, la app lee tus límites de uso desde su [línea de estado](https://code.claude.com/docs/en/statusline), que recibe `rate_limits.five_hour` y `rate_limits.seven_day`. No se maneja ninguna sesión, cookie ni token: solo los números que Claude Code ya calcula.
 
-Al abrir la app por primera vez, el panel muestra la tarjeta **«Conecta Usage Monitor con Claude Code»**. Pulsa *Conectar con Claude Code* y confirma: la app instala `~/.usage-monitor/statusline-feed.sh` y añade la clave `statusLine` a `~/.claude/settings.json`, guardando antes una copia de respaldo con fecha. Si ya tenías una línea de estado, se conserva (el script la ejecuta después). *Ajustes → Fuente de datos → Desconectar…* lo deja como estaba.
+Al abrir la app por primera vez, el panel muestra la tarjeta **«Conecta AI Usage Monitor con Claude Code»**. Pulsa *Conectar con Claude Code* y confirma: la app instala `~/.ai-usage-monitor/statusline-feed.sh` y añade la clave `statusLine` a `~/.claude/settings.json`, guardando antes una copia de respaldo con fecha. Si ya tenías una línea de estado, se conserva (el script la ejecuta después). *Ajustes → Fuente de datos → Desconectar…* lo deja como estaba.
 
 Después abre una sesión **nueva** de Claude Code: la app se actualiza sola cuando llegan los datos. Si prefieres la ventana de claude.ai, usa *Usar claude.ai en su lugar* en la tarjeta o *Ajustes → Fuente de datos*.
 
@@ -130,13 +132,13 @@ El pie del panel muestra la versión de la app y, con servidor propio, la del se
 
 **Canal dev.** Cada cambio en la rama `dev` publica un pre-release `vX.Y.Z-dev.N` (N = número de commits; se conservan los últimos 10) con los instaladores, y la imagen del servidor `X.Y.Z-dev.N` y `:dev` con la misma versión. El canal se elige en *Ajustes y datos → Canal de actualizaciones*: **Estable (main)** solo mira las estables (y, con una app de dev instalada, ofrece volver a la última estable); **Desarrollo (dev)** también las de dev. Sin elegir, una app de dev sigue dev y una estable sigue main.
 
-**Actualizar con un botón** (Windows x64 y macOS Apple Silicon, en la app empaquetada). El aviso trae *Actualizar ahora*: la app descarga el instalador del release con una barra de progreso (se puede cancelar), comprueba su sha256 con el que publica GitHub y se lo pasa a `scripts/install-win.ps1` o `scripts/install-mac.sh`, que vienen dentro de la app. La app se cierra, el script la reemplaza y la vuelve a abrir. Si algo falla, el script reabre la versión que estabas usando y el panel muestra el error con *Reintentar*. En Windows, si la abriste desde un zip, se instala en `%LOCALAPPDATA%\Programs\Usage Monitor`, igual que con el script. En macOS se reemplaza la copia que estás usando, si su carpeta admite escritura, o se instala en */Applications*.
+**Actualizar con un botón** (Windows x64 y macOS Apple Silicon, en la app empaquetada). El aviso trae *Actualizar ahora*: la app descarga el instalador del release con una barra de progreso (se puede cancelar), comprueba su sha256 con el que publica GitHub y se lo pasa a `scripts/install-win.ps1` o `scripts/install-mac.sh`, que vienen dentro de la app. La app se cierra, el script la reemplaza y la vuelve a abrir. Si algo falla, el script reabre la versión que estabas usando y el panel muestra el error con *Reintentar*. En Windows, si la abriste desde un zip, se instala en `%LOCALAPPDATA%\Programs\AI Usage Monitor`, igual que con el script. En macOS se reemplaza la copia que estás usando, si su carpeta admite escritura, o se instala en */Applications*.
 
 **Resumen de la actualización.** Al abrir una versión distinta de la última vez, el panel muestra *Actualizado a vX* con lo que cambió: las viñetas de las notas de los releases intermedios y los títulos de los commits entre ambas versiones (sin los merges), hasta que pulses *Entendido*. Si la versión anterior era un dev que ya se borró (se conservan 10), no hay lista de commits y queda solo el enlace a GitHub. Con *Buscar actualizaciones* desactivado no se consulta GitHub y el resumen solo dice de qué versión vienes.
 
 ## Privacidad
 
-Todo queda en tu equipo: `~/Library/Application Support/Usage Monitor` (macOS) o `%APPDATA%\Usage Monitor` (Windows) (historial, modelo, ajustes y la sesión de la ventana de claude.ai). Se guardan porcentajes de uso y horas de reinicio, no contenido de conversaciones. «Exportar CSV» incluye tu patrón de uso: no lo subas al repositorio (`*.csv` está en `.gitignore`).
+Todo queda en tu equipo: `~/Library/Application Support/AI Usage Monitor` (macOS) o `%APPDATA%\AI Usage Monitor` (Windows) (historial, modelo, ajustes y la sesión de la ventana de claude.ai). Se guardan porcentajes de uso y horas de reinicio, no contenido de conversaciones. «Exportar CSV» incluye tu patrón de uso: no lo subas al repositorio (`*.csv` está en `.gitignore`).
 
 ## Licencia
 

@@ -8,8 +8,8 @@ const crypto = require("crypto");
 const { pickAsset, download } = require("../src/selfupdate");
 
 const assets = [
-  { name: "Usage-Monitor-v0.4.0-macos-arm64.dmg", url: "m" },
-  { name: "Usage-Monitor-v0.4.0-windows-x64.zip", url: "w" }
+  { name: "AI-Usage-Monitor-v0.4.0-macos-arm64.dmg", url: "m" },
+  { name: "AI-Usage-Monitor-v0.4.0-windows-x64.zip", url: "w" }
 ];
 test("elige el instalador de cada sistema (solo Windows x64 y macOS Apple Silicon)", () => {
   assert.strictEqual(pickAsset(assets, "win32", "x64").url, "w");

@@ -35,7 +35,7 @@ test("ventana ausente (solo semanal) es sin uso en 5 h", () => {
 });
 test("sin rate_limits o archivo ausente o corrupto: error de tipo nofeed", () => {
   assert.throws(() => parseFeed({}, NOW), e => e.kind === "nofeed");
-  assert.throws(() => readFeed(path.join(os.tmpdir(), "no-existe-usage-monitor.json"), NOW), e => e.kind === "nofeed");
+  assert.throws(() => readFeed(path.join(os.tmpdir(), "no-existe-ai-usage-monitor.json"), NOW), e => e.kind === "nofeed");
   const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "um-feed-")), "x.json");
   fs.writeFileSync(f, "{no json");
   assert.throws(() => readFeed(f, NOW), e => e.kind === "nofeed");
@@ -129,4 +129,40 @@ test("settings.json ausente se crea; inválido o con statusLine rara no se toca"
   const odd = sandbox({ statusLine: { type: "plugin" } });
   assert.throws(() => cc.connect(odd.file), /no es de tipo/);
   assert.deepEqual(odd.read(), { statusLine: { type: "plugin" } });
+});
+
+// ── Migración desde ~/.usage-monitor (nombre anterior de la app) ──
+function legacySandbox(settings) {
+  const s = sandbox(settings === undefined ? {} : settings);
+  const old = path.join(s.dir, "old");
+  fs.mkdirSync(old, { recursive: true });
+  fs.writeFileSync(path.join(old, "statusline-feed.sh"), "#!/bin/sh\n");
+  fs.writeFileSync(path.join(old, "claude-code.json"), '{"rate_limits":{}}');
+  return { ...s, old, oldScript: path.join(old, "statusline-feed.sh") };
+}
+test("migración: una línea de estado que apunta al script viejo pasa al nuevo y conserva el comando envuelto", () => {
+  const s = legacySandbox();
+  fs.writeFileSync(s.file, JSON.stringify({ statusLine: { type: "command", command: `"${s.oldScript}" ~/mi-linea.sh`, padding: 1 } }));
+  const r = cc.migrateLegacyFeed(s.file, s.old);
+  assert.equal(r.migrated, true);
+  assert.equal(s.read().statusLine.command, `"${cc.scriptFile()}" ~/mi-linea.sh`);
+  assert.equal(s.read().statusLine.padding, 1);
+  assert.ok(fs.existsSync(cc.scriptFile()) && fs.existsSync(cc.feedFile()), "script nuevo instalado y último dato copiado");
+  assert.equal(s.baks().length, 1);
+  assert.ok(fs.existsSync(s.oldScript), "el script viejo no se borra");
+  assert.equal(cc.migrateLegacyFeed(s.file, s.old).migrated, false, "segunda vez: no hay nada que migrar");
+});
+test("migración: solo el script viejo sin otro comando", () => {
+  const s = legacySandbox();
+  fs.writeFileSync(s.file, JSON.stringify({ statusLine: { type: "command", command: `"${s.oldScript}"` } }));
+  assert.equal(cc.migrateLegacyFeed(s.file, s.old).migrated, true);
+  assert.equal(s.read().statusLine.command, `"${cc.scriptFile()}"`);
+});
+test("migración: sin conexión previa o con otra línea de estado no toca nada", () => {
+  const s = legacySandbox({ statusLine: { type: "command", command: "~/otra.sh" } });
+  assert.equal(cc.migrateLegacyFeed(s.file, s.old).migrated, false);
+  assert.equal(s.read().statusLine.command, "~/otra.sh");
+  assert.equal(s.baks().length, 0);
+  const sin = legacySandbox();
+  assert.equal(cc.migrateLegacyFeed(sin.file, path.join(sin.dir, "no-existe")).migrated, false);
 });

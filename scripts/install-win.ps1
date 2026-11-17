@@ -1,18 +1,18 @@
-﻿# Instala Usage Monitor en Windows (x64) desde el último release de GitHub.
+﻿# Instala AI Usage Monitor en Windows (x64) desde el último release de GitHub.
 #
 # Uso (PowerShell):
-#   irm https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-win.ps1 | iex
+#   irm https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-win.ps1 | iex
 # Con actualización automática (opcional):
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-win.ps1))) -AutoUpdate
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-win.ps1))) -AutoUpdate
 #
 # Qué hace (léelo antes de ejecutarlo, es corto):
 #   1. busca en GitHub el .zip de Windows de la última versión del canal (main: estables; dev: también las -dev.N);
 #   2. si ya tienes esa versión, no hace nada; si no, lo descarga a una carpeta temporal;
-#   3. cierra la copia instalada si está abierta, la reemplaza en %LOCALAPPDATA%\Programs\Usage Monitor
+#   3. cierra la copia instalada si está abierta, la reemplaza en %LOCALAPPDATA%\Programs\AI Usage Monitor
 #      y crea un acceso directo en el menú Inicio;
 #   4. abre la app (o la vuelve a abrir si estaba abierta).
 # No usa permisos de administrador. Lo que baja PowerShell no lleva la marca «descargado de internet»,
-# así que SmartScreen no avisa. Tus datos (%APPDATA%\Usage Monitor) no se tocan.
+# así que SmartScreen no avisa. Tus datos (%APPDATA%\AI Usage Monitor) no se tocan.
 #
 # Opciones:
 #   -Channel main|dev   canal de versiones. Sin indicarlo: el que elegiste en la app (Ajustes → Canal de
@@ -36,7 +36,7 @@ param(
   [switch]$DisableAutoUpdate,
   [switch]$Uninstall,
   [ValidateSet('', 'main', 'dev')][string]$Channel = '',
-  [string]$InstallDir = (Join-Path $env:LOCALAPPDATA 'Programs\Usage Monitor'),
+  [string]$InstallDir = (Join-Path $env:LOCALAPPDATA 'Programs\AI Usage Monitor'),
   [switch]$NoStart,
   [switch]$Quiet,
   [string]$ZipPath = '',
@@ -56,13 +56,19 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'   # en PowerShell 5.1 la barra de progreso hace lentísima la descarga
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-$Repo      = 'ignaciovillela/usage-monitor'
+$Repo      = 'ignaciovillela/ai-usage-monitor'
 $ScriptUrl = "https://raw.githubusercontent.com/$Repo/main/scripts/install-win.ps1"
-$TaskName  = 'Usage Monitor - actualizar'
-$Exe       = Join-Path $InstallDir 'Usage Monitor.exe'
+$TaskName  = 'AI Usage Monitor - actualizar'
+$Exe       = Join-Path $InstallDir 'AI Usage Monitor.exe'
 $VerFile   = Join-Path $InstallDir '.release-tag'
-$Updater   = Join-Path $env:LOCALAPPDATA 'Usage Monitor Updater\install-win.ps1'
-$Shortcut  = Join-Path ([Environment]::GetFolderPath('Programs')) 'Usage Monitor.lnk'
+$Updater   = Join-Path $env:LOCALAPPDATA 'AI Usage Monitor Updater\install-win.ps1'
+$Shortcut  = Join-Path ([Environment]::GetFolderPath('Programs')) 'AI Usage Monitor.lnk'
+# La app se llamó «Usage Monitor»: lo que dejó esa versión se reemplaza por esta (los datos se migran solos al abrirla).
+$LegacyDir      = Join-Path $env:LOCALAPPDATA 'Programs\Usage Monitor'
+$LegacyTask     = 'Usage Monitor - actualizar'
+$LegacyUpdater  = Join-Path $env:LOCALAPPDATA 'Usage Monitor Updater'
+$LegacyShortcut = Join-Path ([Environment]::GetFolderPath('Programs')) 'Usage Monitor.lnk'
+$LegacySettings = Join-Path $env:APPDATA 'Usage Monitor\settings.json'
 if ($env:USAGE_MONITOR_AUTOUPDATE -eq '1') { $AutoUpdate = $true }
 if ($Quiet) { $NoStart = $true }   # la tarea programada solo reabre la app si la cerró para actualizar
 if ($WaitPid) { $NoStart = $false }   # la app se cerró para actualizarse: se vuelve a abrir
@@ -78,7 +84,7 @@ function Remove-UpdateTask {
 }
 
 function Stop-App {
-  $running = Get-Process -Name 'Usage Monitor' -ErrorAction SilentlyContinue |
+  $running = Get-Process -Name 'AI Usage Monitor' -ErrorAction SilentlyContinue |
     Where-Object { $_.Path -and $_.Path.StartsWith($InstallDir, [StringComparison]::OrdinalIgnoreCase) }
   if ($running) {
     Say 'Cerrando la versión instalada, que está abierta…'
@@ -88,13 +94,28 @@ function Stop-App {
   return [bool]$running
 }
 
+function Remove-Legacy {
+  if (Get-ScheduledTask -TaskName $LegacyTask -ErrorAction SilentlyContinue) {
+    Unregister-ScheduledTask -TaskName $LegacyTask -Confirm:$false
+    $script:AutoUpdate = $true      # tenías la actualización automática: se vuelve a crear con el nombre nuevo
+  }
+  Remove-Item $LegacyUpdater -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $LegacyShortcut -Force -ErrorAction SilentlyContinue
+  if (Test-Path $LegacyDir) {
+    Get-Process -Name 'Usage Monitor' -ErrorAction SilentlyContinue |
+      Where-Object { $_.Path -and $_.Path.StartsWith($LegacyDir, [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force
+    Start-Sleep -Seconds 1
+    Remove-Item $LegacyDir -Recurse -Force -ErrorAction SilentlyContinue
+  }
+}
+
 if ($DisableAutoUpdate) { Remove-UpdateTask; return }
 if ($Uninstall) {
   [void](Stop-App)
   Remove-UpdateTask
   Remove-Item $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
   Remove-Item $Shortcut -Force -ErrorAction SilentlyContinue
-  Say "Desinstalado. Tus datos siguen en $env:APPDATA\Usage Monitor (bórralos a mano si quieres)."
+  Say "Desinstalado. Tus datos siguen en $env:APPDATA\AI Usage Monitor (bórralos a mano si quieres)."
   return
 }
 
@@ -119,14 +140,16 @@ if ($ZipPath) {
 # Canal: el parámetro; si no, el elegido en la app; si no, el de la versión instalada; si no, main.
 if (-not $Channel) {
   try {
-    $appSettings = Get-Content (Join-Path $env:APPDATA 'Usage Monitor\settings.json') -Raw -ErrorAction Stop | ConvertFrom-Json
+    $settingsFile = Join-Path $env:APPDATA 'AI Usage Monitor\settings.json'
+    if (-not (Test-Path $settingsFile)) { $settingsFile = $LegacySettings }
+    $appSettings = Get-Content $settingsFile -Raw -ErrorAction Stop | ConvertFrom-Json
     if ($appSettings.updateChannel -in 'main', 'dev') { $Channel = $appSettings.updateChannel }
   } catch { }
 }
 if (-not $Channel) { $Channel = if ($installed -match '-dev\.') { 'dev' } else { 'main' } }
 
 Say "Buscando la última versión (canal $Channel)…"
-$releases = Invoke-RestMethod -UseBasicParsing -Headers @{ 'User-Agent' = 'usage-monitor-installer' } `
+$releases = Invoke-RestMethod -UseBasicParsing -Headers @{ 'User-Agent' = 'ai-usage-monitor-installer' } `
   "https://api.github.com/repos/$Repo/releases?per_page=40"
 $release = $releases |
   Where-Object { -not $_.draft -and (Get-VersionKey $_.tag_name) -and ($Channel -eq 'dev' -or $_.tag_name -notmatch '-dev\.') } |
@@ -142,7 +165,7 @@ if ($installed -eq $tag) {
   Say "Ya tienes la última versión ($tag)."
   if ($ZipPath) { Remove-Item -LiteralPath $ZipPath -Force -ErrorAction SilentlyContinue }
 } else {
-  $tmp = Join-Path ([IO.Path]::GetTempPath()) ("usage-monitor-" + [guid]::NewGuid())
+  $tmp = Join-Path ([IO.Path]::GetTempPath()) ("ai-usage-monitor-" + [guid]::NewGuid())
   New-Item -ItemType Directory $tmp | Out-Null
   try {
     if ($ZipPath) {
@@ -153,8 +176,8 @@ if ($installed -eq $tag) {
       Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile $zip
     }
     Expand-Archive -LiteralPath $zip (Join-Path $tmp 'x')
-    $newExe = Get-ChildItem (Join-Path $tmp 'x') -Recurse -Filter 'Usage Monitor.exe' | Select-Object -First 1
-    if (-not $newExe) { throw 'El zip no contiene Usage Monitor.exe.' }
+    $newExe = Get-ChildItem (Join-Path $tmp 'x') -Recurse -Filter 'AI Usage Monitor.exe' | Select-Object -First 1
+    if (-not $newExe) { throw 'El zip no contiene AI Usage Monitor.exe.' }
 
     if ($WaitPid) { Wait-Process -Id $WaitPid -Timeout 60 -ErrorAction SilentlyContinue }   # la app se está cerrando
     $wasRunning = Stop-App
@@ -178,6 +201,8 @@ if ($installed -eq $tag) {
   }
 }
 
+Remove-Legacy
+
 $ws = New-Object -ComObject WScript.Shell
 $lnk = $ws.CreateShortcut($Shortcut)
 $lnk.TargetPath = $Exe
@@ -198,12 +223,12 @@ if ($AutoUpdate) {
   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -RunOnlyIfNetworkAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
   Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $triggers -Settings $settings `
-    -Description 'Actualiza Usage Monitor desde GitHub (creada por install-win.ps1).' -Force | Out-Null
+    -Description 'Actualiza AI Usage Monitor desde GitHub (creada por install-win.ps1).' -Force | Out-Null
   Say "Actualización automática activada (al iniciar sesión y cada día). Para quitarla: -DisableAutoUpdate"
 }
 
 if (-not $NoStart) {
   if ($WaitPid) { Wait-Process -Id $WaitPid -Timeout 60 -ErrorAction SilentlyContinue }   # una sola instancia a la vez
   Start-Process $Exe -WorkingDirectory $InstallDir
-  Say 'Abriendo Usage Monitor… el ícono aparece en la bandeja, junto al reloj (puede quedar bajo «^»).'
+  Say 'Abriendo AI Usage Monitor… el ícono aparece en la bandeja, junto al reloj (puede quedar bajo «^»).'
 }

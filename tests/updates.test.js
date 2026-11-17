@@ -20,8 +20,8 @@ test("último release: el de versión más alta, sin borradores (los pre-release
   assert.strictEqual(latestRelease([]), null);
 });
 test("repositorio desde package.json y variable para cambiar la API", () => {
-  const pkg = { repository: { url: "https://github.com/ana/usage-monitor.git" } };
-  assert.deepStrictEqual(repoUrls(pkg, {}), { api: "https://api.github.com/repos/ana/usage-monitor/releases?per_page=40", page: "https://github.com/ana/usage-monitor/releases", repo: "https://github.com/ana/usage-monitor", base: "https://api.github.com/repos/ana/usage-monitor" });
+  const pkg = { repository: { url: "https://github.com/ana/ai-usage-monitor.git" } };
+  assert.deepStrictEqual(repoUrls(pkg, {}), { api: "https://api.github.com/repos/ana/ai-usage-monitor/releases?per_page=40", page: "https://github.com/ana/ai-usage-monitor/releases", repo: "https://github.com/ana/ai-usage-monitor", base: "https://api.github.com/repos/ana/ai-usage-monitor" });
   assert.strictEqual(repoUrls(pkg, { USAGE_MONITOR_RELEASES_URL: "https://x/api" }).api, "https://x/api");
   assert.deepStrictEqual(repoUrls({}, {}), { api: null, page: null, repo: null, base: null });
 });

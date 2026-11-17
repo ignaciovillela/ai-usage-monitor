@@ -12,7 +12,7 @@ function pickAsset(assets, platform = process.platform, arch = process.arch) {
 }
 
 // onProgress(recibidos, total) como mucho cada 200 ms y al terminar. signal: AbortSignal para cancelar.
-async function download(asset, dest, { onProgress = () => {}, signal, userAgent = "usage-monitor" } = {}) {
+async function download(asset, dest, { onProgress = () => {}, signal, userAgent = "ai-usage-monitor" } = {}) {
   const res = await fetch(asset.url, { headers: { "User-Agent": userAgent }, signal });
   if (!res.ok || !res.body) throw new Error(`No se pudo descargar ${asset.name} (HTTP ${res.status}).`);
   const total = Number(res.headers.get("content-length")) || asset.size || 0;
