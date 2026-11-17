@@ -1,5 +1,5 @@
 // Importa un CSV exportado desde el panel (o desde la versión con extensión) a los datos de la app.
-// Uso (con la app CERRADA): node scripts/import-history.js <usage-monitor-....csv>
+// Uso (con la app CERRADA): node scripts/import-history.js <ai-usage-monitor-....csv>
 // Hace copia de seguridad de lo que hubiera y no toca nada más.
 const fs = require("fs");
 const os = require("os");
@@ -9,7 +9,7 @@ const { buildPersisted } = require("../src/importer");
 
 const files = process.argv.slice(2);
 if (!files.length) { console.error("Uso: node scripts/import-history.js archivo.csv [otro.csv]"); process.exit(1); }
-const dir = path.join(os.homedir(), "Library", "Application Support", "Usage Monitor");
+const dir = path.join(os.homedir(), "Library", "Application Support", "AI Usage Monitor");
 fs.mkdirSync(dir, { recursive: true });
 const dataFile = path.join(dir, "usage-data.json"), settingsFile = path.join(dir, "settings.json");
 

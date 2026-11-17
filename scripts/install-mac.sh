@@ -1,11 +1,11 @@
 #!/bin/bash
-# Instala Usage Monitor en macOS (Apple Silicon) desde el último release de GitHub.
+# Instala AI Usage Monitor en macOS (Apple Silicon) desde el último release de GitHub.
 #
-# Uso:  curl -fsSL https://raw.githubusercontent.com/ignaciovillela/usage-monitor/main/scripts/install-mac.sh | bash
+# Uso:  curl -fsSL https://raw.githubusercontent.com/ignaciovillela/ai-usage-monitor/main/scripts/install-mac.sh | bash
 #
 # Qué hace (léelo antes de ejecutarlo, es corto):
 #   1. busca en GitHub el .dmg del release más reciente y lo descarga con curl a una carpeta temporal;
-#   2. lo monta, copia "Usage Monitor.app" a /Applications (primero al lado y después reemplaza la anterior) y lo desmonta;
+#   2. lo monta, copia "AI Usage Monitor.app" a /Applications (primero al lado y después reemplaza la anterior) y lo desmonta;
 #   3. abre la app.
 # Por qué no aparece el bloqueo de macOS: macOS marca como "descargado de internet" lo que bajan los navegadores,
 # no lo que baja curl. Este script no modifica ningún atributo de seguridad ni usa sudo.
@@ -17,9 +17,9 @@
 #   ERROR_LOG=<archivo> si algo falla, dejar ahí el error (la app lo muestra al volver a abrirse).
 set -euo pipefail
 
-REPO="ignaciovillela/usage-monitor"
+REPO="ignaciovillela/ai-usage-monitor"
 INSTALL_DIR="${INSTALL_DIR:-/Applications}"
-APP="Usage Monitor.app"
+APP="AI Usage Monitor.app"
 DMG="${DMG:-}"
 WAIT_PID="${WAIT_PID:-}"
 
@@ -69,11 +69,20 @@ if [ -n "$WAIT_PID" ]; then
 fi
 if pgrep -f "$INSTALL_DIR/$APP/Contents/MacOS/" >/dev/null 2>&1; then     # solo la copia que se va a reemplazar
   echo "Cerrando la versión instalada, que está abierta…"
-  osascript -e 'quit app "Usage Monitor"' >/dev/null 2>&1 || true
+  osascript -e 'quit app "AI Usage Monitor"' >/dev/null 2>&1 || true
   sleep 2
+fi
+# La app se llamó «Usage Monitor»: si sigue instalada con ese nombre, se reemplaza por esta (los datos se migran solos al abrirla).
+LEGACY="Usage Monitor.app"
+if [ -d "$INSTALL_DIR/$LEGACY" ]; then
+  if pgrep -f "$INSTALL_DIR/$LEGACY/Contents/MacOS/" >/dev/null 2>&1; then
+    osascript -e 'quit app "Usage Monitor"' >/dev/null 2>&1 || true
+    sleep 2
+  fi
+  rm -rf "${INSTALL_DIR:?}/$LEGACY"
 fi
 rm -rf "${INSTALL_DIR:?}/$APP"
 mv "$NEW" "$INSTALL_DIR/$APP" || fail "No se pudo reemplazar $INSTALL_DIR/$APP."
 echo "Instalado en $INSTALL_DIR/$APP"
 
-if [ "${OPEN:-1}" = "1" ]; then open "$INSTALL_DIR/$APP"; echo "Abriendo Usage Monitor… el panel te ayudará a conectarlo con Claude Code."; fi
+if [ "${OPEN:-1}" = "1" ]; then open "$INSTALL_DIR/$APP"; echo "Abriendo AI Usage Monitor… el panel te ayudará a conectarlo con Claude Code."; fi

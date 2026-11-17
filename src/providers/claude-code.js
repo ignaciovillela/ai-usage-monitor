@@ -6,7 +6,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const feedDir = () => process.env.USAGE_MONITOR_FEED_DIR || path.join(os.homedir(), ".usage-monitor");   // se puede cambiar para pruebas
+const feedDir = () => process.env.USAGE_MONITOR_FEED_DIR || path.join(os.homedir(), ".ai-usage-monitor");   // se puede cambiar para pruebas
 const feedFile = () => process.env.USAGE_MONITOR_FEED || path.join(feedDir(), "claude-code.json");
 
 function feedError(message) { const e = new Error(message); e.kind = "nofeed"; return e; }
@@ -46,10 +46,10 @@ function readFeed(file, now) {
 // Script que Claude Code ejecuta como línea de estado. Solo guarda `rate_limits` y, si se le pasa un comando, se lo reenvía
 // para no perder la línea de estado que ya tengas.
 const FEED_SCRIPT = `#!/bin/sh
-# Usage Monitor: guarda los límites de uso que Claude Code pasa a la línea de estado.
+# AI Usage Monitor: guarda los límites de uso que Claude Code pasa a la línea de estado.
 # Uso: statusline-feed.sh [tu comando de línea de estado actual]
 umask 077
-FEED="\${USAGE_MONITOR_FEED:-$HOME/.usage-monitor/claude-code.json}"
+FEED="\${USAGE_MONITOR_FEED:-$HOME/.ai-usage-monitor/claude-code.json}"
 mkdir -p "$(dirname "$FEED")"
 IN=$(cat)
 if printf '%s' "$IN" | grep -q '"rate_limits"'; then
@@ -111,7 +111,7 @@ function writeSettings(file, previousText, next, now = new Date()) {
   let backup = null;
   if (previousText.trim()) {
     const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\..*/, "");
-    backup = `${file}.usage-monitor-${stamp}.bak`;
+    backup = `${file}.ai-usage-monitor-${stamp}.bak`;
     fs.writeFileSync(backup, previousText, { mode: 0o600 });
   }
   const tmp = `${file}.${process.pid}.tmp`;
@@ -132,8 +132,26 @@ function disconnect(file = settingsFile()) {
   const backup = plan.status === "removed" ? writeSettings(file, text, plan.next) : null;
   return { status: plan.status, backup, file };
 }
+// Antes la app se llamaba «Usage Monitor» y su script vivía en ~/.usage-monitor. Si tu línea de estado sigue apuntando a ese script
+// (solo o envolviendo otro comando), se apunta al nuevo, se copia el último dato y se deja un respaldo de settings.json.
+// El script viejo no se borra: otra configuración podría seguir usándolo.
+const legacyFeedDir = () => process.env.USAGE_MONITOR_LEGACY_FEED_DIR || path.join(os.homedir(), ".usage-monitor");
+function migrateLegacyFeed(file = settingsFile(), oldDir = legacyFeedDir()) {
+  const oldScript = path.join(oldDir, "statusline-feed.sh");
+  if (!fs.existsSync(oldScript)) return { migrated: false };
+  const { text, data } = readSettings(file);
+  const cur = data.statusLine;
+  const prev = cur && unwrap(cur.command, oldScript);
+  if (prev === null || prev === undefined) return { migrated: false };
+  const oldFeed = path.join(oldDir, "claude-code.json");
+  const script = installScript();
+  if (fs.existsSync(oldFeed) && !fs.existsSync(feedFile())) fs.copyFileSync(oldFeed, feedFile());
+  const command = prev === "" ? quoted(script) : `${quoted(script)} ${prev}`;
+  const backup = writeSettings(file, text, { ...data, statusLine: { ...cur, command } });
+  return { migrated: true, backup };
+}
 function isConnected(file = settingsFile()) {
   try { const { data } = readSettings(file); return fs.existsSync(scriptFile()) && !!data.statusLine && unwrap(data.statusLine.command, scriptFile()) !== null; } catch (_) { return false; }
 }
 
-module.exports = { readFeed, parseFeed, feedFile, installScript, scriptFile, FEED_SCRIPT, settingsFile, planConnect, planDisconnect, connect, disconnect, isConnected };
+module.exports = { migrateLegacyFeed, readFeed, parseFeed, feedFile, installScript, scriptFile, FEED_SCRIPT, settingsFile, planConnect, planDisconnect, connect, disconnect, isConnected };

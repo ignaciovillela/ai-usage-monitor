@@ -55,7 +55,7 @@ const CHANNELS = ["main", "dev"];
 const effectiveChannel = (setting, appVersion) => CHANNELS.includes(setting) ? setting : isPrerelease(appVersion) ? "dev" : "main";
 
 async function getJson(url, appVersion) {
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json", "User-Agent": `usage-monitor/${appVersion}` }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json", "User-Agent": `ai-usage-monitor/${appVersion}` }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`${url.replace(/^.*\/repos\/[^/]+\/[^/]+/, "")}: HTTP ${res.status}`);
   return res.json();
 }

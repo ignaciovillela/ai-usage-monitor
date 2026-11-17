@@ -1,4 +1,4 @@
-// Usage Monitor: ícono dinámico del Dock con el uso de Claude y su proyección hasta el reinicio.
+// AI Usage Monitor: ícono dinámico del Dock con el uso de Claude y su proyección hasta el reinicio.
 // Lee el uso con tu propia sesión de claude.ai, iniciada en una ventana de la app (sin extensión ni navegador).
 const { app, BrowserWindow, Menu, Notification, Tray, nativeImage, session, ipcMain, dialog, screen, safeStorage, shell, clipboard } = require("electron");
 const fs = require("fs");
@@ -20,20 +20,22 @@ const MOCK = process.env.USAGE_MONITOR_MOCK ? require("./mockfeed") : null;
 const ICON_REFRESH_MS = 5000;           // el ícono se redibuja cada pocos segundos (anillo de tiempo y cuentas atrás)
 const PAGE_RELOAD_MS = 3 * 60 * 60 * 1000;
 
-app.setName("Usage Monitor");
-const APP_ID = "io.github.ignaciovillela.usage-monitor";
+app.setName("AI Usage Monitor");
+const APP_ID = "io.github.ignaciovillela.ai-usage-monitor";
 if (process.platform === "win32") app.setAppUserModelId(APP_ID);   // necesario para las notificaciones de Windows
 if (process.env.USAGE_MONITOR_DATA) app.setPath("userData", process.env.USAGE_MONITOR_DATA);   // para pruebas: otra instancia, otros datos
-// Instalación anterior (cuando la app se llamaba "Claude Usage"): se copian historial y ajustes una sola vez.
-// La sesión de claude.ai no se copia: hay que iniciarla de nuevo.
+// Instalaciones anteriores (la app se llamó «Usage Monitor» y antes «Claude Usage»): se copian historial y ajustes una sola vez.
+// La sesión de claude.ai no se copia (ni el token del servidor propio, que va cifrado con la clave del nombre anterior): hay que ponerlos de nuevo.
 if (!process.env.USAGE_MONITOR_DATA && !SELFTEST && !MAKE_ICON && !process.argv.some(x => x.startsWith("--panel-shot="))) {
   try {
-    const legacy = path.join(app.getPath("appData"), "Claude Usage"), dest = app.getPath("userData");
-    if (!fs.existsSync(path.join(dest, "usage-data.json")) && fs.existsSync(path.join(legacy, "usage-data.json"))) {
+    const dest = app.getPath("userData");
+    const legacy = ["Usage Monitor", "Claude Usage"].map(n => path.join(app.getPath("appData"), n)).find(d => fs.existsSync(path.join(d, "usage-data.json")));
+    if (legacy && !fs.existsSync(path.join(dest, "usage-data.json"))) {
       fs.mkdirSync(dest, { recursive: true });
       for (const f of ["usage-data.json", "settings.json"]) if (fs.existsSync(path.join(legacy, f))) fs.copyFileSync(path.join(legacy, f), path.join(dest, f));
     }
   } catch (e) { console.error("no se pudo migrar la instalación anterior:", e.message); }
+  try { claudeCode.migrateLegacyFeed(); } catch (e) { console.error("no se pudo migrar la conexión con Claude Code:", e.message); }
 }
 if (!SELFTEST && !MAKE_ICON && !process.argv.some(x => x.startsWith("--panel-shot=")) && !app.requestSingleInstanceLock()) app.quit();
 
@@ -183,7 +185,7 @@ function refreshAdvice() {
     if ((settings.notifiedUpdates || []).includes(key)) continue;
     saveFlag("notifiedUpdates", [...(settings.notifiedUpdates || []), key].slice(-10));
     if (settings.alerts && Notification.isSupported()) {
-      const n = new Notification({ title: a.kind === "server" ? "Usage Monitor: actualiza el servidor" : "Usage Monitor: actualización disponible", body: a.text });
+      const n = new Notification({ title: a.kind === "server" ? "AI Usage Monitor: actualiza el servidor" : "AI Usage Monitor: actualización disponible", body: a.text });
       if (a.url) n.on("click", () => openRelease(a.url));
       n.show();
     }
@@ -210,11 +212,11 @@ function selfUpdateTarget() {
   if (!app.isPackaged || MOCK || process.env.USAGE_MONITOR_DATA) return null;
   if (process.platform === "win32" && process.arch === "x64") {
     // Instalada por el script: se reemplaza en su sitio. Abierta desde un zip: se instala donde lo hace el script.
-    return { os: "win", dir: scriptInstalled() ? exeDir() : path.join(process.env.LOCALAPPDATA || "", "Programs", "Usage Monitor") };
+    return { os: "win", dir: scriptInstalled() ? exeDir() : path.join(process.env.LOCALAPPDATA || "", "Programs", "AI Usage Monitor") };
   }
   if (process.platform === "darwin" && process.arch === "arm64") {
-    const bundle = path.resolve(process.execPath, "..", "..", "..");      // …/Usage Monitor.app/Contents/MacOS/Usage Monitor
-    const dir = path.basename(bundle) === "Usage Monitor.app" && writable(path.dirname(bundle)) ? path.dirname(bundle) : "/Applications";
+    const bundle = path.resolve(process.execPath, "..", "..", "..");      // …/AI Usage Monitor.app/Contents/MacOS/AI Usage Monitor
+    const dir = path.basename(bundle) === "AI Usage Monitor.app" && writable(path.dirname(bundle)) ? path.dirname(bundle) : "/Applications";
     return writable(dir) ? { os: "mac", dir, bundle } : null;
   }
   return null;
@@ -225,7 +227,7 @@ const bundledScript = name => fs.readFileSync(path.join(__dirname, "..", "script
 // La tarea de actualización automática de Windows ejecuta una copia local del instalador: se mantiene igual a la de esta versión.
 function refreshUpdaterCopy() {
   if (!scriptInstalled()) return;
-  const copy = path.join(process.env.LOCALAPPDATA || "", "Usage Monitor Updater", "install-win.ps1");
+  const copy = path.join(process.env.LOCALAPPDATA || "", "AI Usage Monitor Updater", "install-win.ps1");
   try { if (fs.existsSync(copy)) fs.writeFileSync(copy, bundledScript("install-win.ps1")); } catch (e) { console.error("no se pudo actualizar el instalador local:", e.message); }
 }
 
@@ -248,10 +250,10 @@ async function installUpdate() {
   const version = latest.version, controller = new AbortController();
   updateJob = { phase: "download", version, received: 0, total: asset.size, controller };
   pushProgress(true);
-  const file = path.join(app.getPath("temp"), `usage-monitor-update-${process.pid}-${asset.name}`);
+  const file = path.join(app.getPath("temp"), `ai-usage-monitor-update-${process.pid}-${asset.name}`);
   try {
     await selfupdate.download(asset, file, {
-      signal: controller.signal, userAgent: `usage-monitor/${app.getVersion()}`,
+      signal: controller.signal, userAgent: `ai-usage-monitor/${app.getVersion()}`,
       onProgress: (received, total) => { updateJob.received = received; updateJob.total = total; pushProgress(false); }
     });
   } catch (e) {
@@ -316,7 +318,7 @@ async function noteVersionChange() {
   }
   saveFlag("updateSummary", { ...summary, at: Date.now() });
   if (settings.alerts && Notification.isSupported()) {
-    const n = new Notification({ title: `Usage Monitor actualizado a v${summary.to}`, body: summary.items[0] ? `${summary.items[0]}${summary.items.length > 1 ? ` (y ${summary.items.length - 1 + summary.more} más)` : ""}` : "Abre el panel para ver las novedades." });
+    const n = new Notification({ title: `AI Usage Monitor actualizado a v${summary.to}`, body: summary.items[0] ? `${summary.items[0]}${summary.items.length > 1 ? ` (y ${summary.items.length - 1 + summary.more} más)` : ""}` : "Abre el panel para ver las novedades." });
     n.on("click", showPanel);
     n.show();
   }
@@ -525,7 +527,7 @@ function showPanel(view) {
   if (panelWin && !panelWin.isDestroyed() && view) panelWin.webContents.send("storage-changed", { panelView: { newValue: view } });
   if (!panelWin || panelWin.isDestroyed()) {
     panelWin = new BrowserWindow({
-      ...panelBounds(), useContentSize: true, minWidth: 340, minHeight: 420, title: "Usage Monitor", backgroundColor: "#0d0d0d",
+      ...panelBounds(), useContentSize: true, minWidth: 340, minHeight: 420, title: "AI Usage Monitor", backgroundColor: "#0d0d0d",
       webPreferences: { preload: path.join(__dirname, "panel-preload.js"), contextIsolation: false }
     });
     setupTaskbar(panelWin);
@@ -611,8 +613,8 @@ async function connectClaudeCode() {
   const box = (message, detail, buttons = ["Aceptar"]) => dialog.showMessageBox({ type: "info", title: "Conectar con Claude Code", message, detail, buttons, defaultId: 0, cancelId: buttons.length - 1 });
   try {
     if (claudeCode.isConnected(file)) return void await box("Claude Code ya está conectado.", "Los datos llegan tras la primera respuesta de cada sesión de Claude Code (planes Pro y Max).");
-    const r = await box("¿Conectar Usage Monitor con Claude Code?",
-      `Se añadirá una línea de estado a ${file} (antes se guarda una copia de respaldo con fecha). El script solo guarda tus límites de uso en ~/.usage-monitor; no usa red ni toca tu inicio de sesión. Si ya tenías una línea de estado, se conserva.\n\nSolo funciona con planes Pro y Max, y los datos llegan tras la primera respuesta de cada sesión.`, ["Conectar", "Cancelar"]);
+    const r = await box("¿Conectar AI Usage Monitor con Claude Code?",
+      `Se añadirá una línea de estado a ${file} (antes se guarda una copia de respaldo con fecha). El script solo guarda tus límites de uso en ~/.ai-usage-monitor; no usa red ni toca tu inicio de sesión. Si ya tenías una línea de estado, se conserva.\n\nSolo funciona con planes Pro y Max, y los datos llegan tras la primera respuesta de cada sesión.`, ["Conectar", "Cancelar"]);
     if (r.response !== 0) return;
     const res = claudeCode.connect(file);
     updateSetting("source", "claude-code");
@@ -711,7 +713,7 @@ async function offerMove(manual) {
   if (!canSetup() || app.isInApplicationsFolder()) return false;
   const { response, checkboxChecked } = await dialog.showMessageBox({
     type: "question", buttons: ["Mover a Aplicaciones", "Ahora no"], defaultId: 0, cancelId: 1,
-    message: "¿Mover Usage Monitor a la carpeta Aplicaciones?",
+    message: "¿Mover AI Usage Monitor a la carpeta Aplicaciones?",
     detail: "Así queda instalada como cualquier otra app y el inicio automático apunta a un lugar estable. La app se reiniciará.",
     checkboxLabel: "No volver a preguntar", checkboxChecked: false
   });
@@ -750,7 +752,7 @@ app.whenReady().then(async () => {
   if (process.platform === "win32") {
     // Windows no tiene Dock: el ícono dinámico va en la bandeja del sistema; clic abre el panel, clic derecho el menú.
     tray = new Tray((await drawDockIcon(iconParamsNow().params)).resize({ width: 32, height: 32, quality: "best" }));
-    tray.setToolTip("Usage Monitor");
+    tray.setToolTip("AI Usage Monitor");
     tray.on("click", showPanel);
   }
   await render(true);

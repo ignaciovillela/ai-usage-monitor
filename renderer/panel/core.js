@@ -325,7 +325,7 @@ function badgeInfo(state, mode, now = Date.now()) {
   return { level, text };
 }
 function tooltipText(state, now = Date.now()) {
-  const lines = ["Usage Monitor"];
+  const lines = ["AI Usage Monitor"];
   if (!state || state.status === "idle") return lines.concat("Consultando…").join("\n");
   if (state.status === "auth" || state.status === "error") {
     return lines.concat(state.error || "No se pudo consultar el uso.").join("\n");

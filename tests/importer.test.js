@@ -9,7 +9,7 @@ const { mergeImport } = require("../src/importer");
 
 const HOUR = 3600e3, DAY = 24 * HOUR;
 const NOW = new Date(2026, 9, 28, 14, 0, 0).getTime();
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "usage-monitor-import-"));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ai-usage-monitor-import-"));
 const write = (name, text) => { const f = path.join(tmp, name); fs.writeFileSync(f, text); return f; };
 
 // Dos días de uso simulado (una ventana de 5 h por día, +1 pp cada 3 min), terminando 3 días antes de NOW.
