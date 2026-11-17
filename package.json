@@ -1,6 +1,6 @@
 {
   "name": "ai-usage-monitor",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "AI usage monitor: tray/Dock icon that shows your Claude / Claude Code usage and projects it until the window resets (macOS and Windows).",
   "repository": { "type": "git", "url": "https://github.com/ignaciovillela/ai-usage-monitor.git" },
   "main": "src/main.js",
